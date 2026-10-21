@@ -1,30 +1,27 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
+<html><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NOVA INVESTING</title>
-<style>
-body{margin:0;font-family:Arial;background:#020617;color:white;text-align:center}
-.hero{padding:80px 20px;background:#0f172a}
-h1{color:#38bdf8;font-size:45px}
-.btn{background:#38bdf8;color:#020617;padding:18px 35px;border-radius:12px;font-weight:bold;text-decoration:none;display:inline-block;margin-top:20px}
-.card{background:#1e293b;margin:15px;padding:25px;border-radius:12px}
-</style>
-</head>
-<body>
-<div class="hero">
-<h1>NOVA INVESTING</h1>
-<h2>Votre Avenir Financier Commence Ici</h2>
-<p>Investissez intelligemment. Gagnez quotidiennement.</p>
-<h3 style="color:#38bdf8;margin-top:20px;">Dépôt crypto, retrait crypto</h3>
-<a class="btn" href="#">COMMENCER</a>
-</div>
-<div style="padding:30px">
-<div class="card"><h3>5% Quotidien</h3><p>Rendement sur dépôt crypto</p></div>
-<div class="card"><h3>Dépôt Crypto</h3><p>USDT - BTC - ETH - BNB</p></div>
-<div class="card"><h3>Retrait Crypto</h3><p>Retrait instantané vers wallet</p></div>
-</div>
-<p style="padding:20px;color:#64748b">© 2025 NOVA INVESTING - 100% Crypto</p>
-</body>
-</html>
+<title>NOVA - Crypto $US</title>
+<style>body{background:#0a0e1a;color:#fff;font-family:Arial;margin:0}
+.row{display:flex;justify-content:space-between;padding:16px;border-bottom:1px solid #1a2036}
+.ico{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.btc{background:#f7931a}.eth{background:#627eea}.usdt{background:#26a17b}.bnb{background:#f3ba2f;color:#000}.sol{background:#9945ff}
+.up{background:#0ecb81;padding:6px 10px;border-radius:6px}
+.down{background:#f6465d;padding:6px 10px;border-radius:6px}
+</style></head><body>
+<div style="padding:12px;background:#0f1423;font-weight:bold">NOVA INVESTING - <span style="color:#0ecb81">● FLUX CONNECTÉ - $US</span></div>
+<div id="list">Chargement...</div>
+<script>
+const coins=['bitcoin','ethereum','tether','binancecoin','solana'];
+async function load(){
+const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids='+coins.join(',')+'&price_change_percentage=24h');
+const d=await r.json();
+let h='';
+d.forEach(x=>{
+let c=x.price_change_percentage_24h;let up=c>=0;
+h+=`<div class=row><div style=display:flex;gap:10px;align-items:center><div class="ico ${x.id=='bitcoin'?'btc':x.id=='ethereum'?'eth':x.id=='tether'?'usdt':x.id=='binancecoin'?'bnb':'sol'}">${x.symbol[0].toUpperCase()}</div><b>${x.symbol.toUpperCase()}</b></div><div style=display:flex;gap:10px><b>$${x.current_price}</b><span class=${up?'up':'down'}>${up?'+':''}${c.toFixed(2)}%</span></div></div>`;
+});
+document.getElementById('list').innerHTML=h;
+}
+load();setInterval(load,30000);
+</script></body></html>
