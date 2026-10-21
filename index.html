@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NOVA INVEST - USDT Only</title>
+<title>NOVA INVEST - Live $US</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <style>
 body{margin:0;background:#070a14;color:#fff;font-family:system-ui}
-.top{background:#0e1324;padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1d2642;position:sticky;top:0}
-.btn{background:#7c3aed;color:#fff;border:0;padding:10px 18px;border-radius:10px;font-weight:800;cursor:pointer}
+.top{background:#0e1324;padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1d2642;position:sticky;top:0;z-index:10}
+.btn{background:#7c3aed;color:#fff;border:0;padding:11px 18px;border-radius:10px;font-weight:800;cursor:pointer}
 .row{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #141b32}
 .up{color:#0ecb81}.down{color:#f6465d}
 .card{background:#10162b;margin:12px;padding:16px;border-radius:14px;border:1px solid #1e2a4a}
@@ -19,132 +19,29 @@ body{margin:0;background:#070a14;color:#fff;font-family:system-ui}
 </style>
 </head>
 <body>
-
 <div class="top">
-<div><b>NOVA</b> <span class="badge">● FLUX CONNECTÉ $US</span></div>
+<div><b>NOVA</b> <span class="badge">● FLUX $US LIVE</span></div>
 <button id="loginBtn" class="btn">Se connecter avec Gmail</button>
-<div id="userBox" style="display:none"><span id="uEmail"></span> <button onclick="firebase.auth().signOut()" class="btn" style="background:#1e2642">Sortir</button></div>
+<div id="userBox" style="display:none"><span id="uEmail" class="small"></span> <button onclick="firebase.auth().signOut()" class="btn" style="background:#1e2642">Sortir</button></div>
 </div>
-
 <div id="marketList"><div style="padding:20px">Chargement marché US$ live...</div></div>
-
 <div class="card" id="dashboard" style="display:none">
 <h3>💼 Mon tableau de bord</h3>
-<p>Solde: <b id="bal" style="font-size:20px">$0.00 USDT</b> <span class="small">TRC20</span></p>
-<p>Investi: <span id="invested">$0</span> | Parrainages: <span id="refs">0</span></p>
-
-<h4>🔗 Mon lien parrainage 5 niveaux</h4>
+<p>Solde: <b id="bal" style="font-size:22px">$0.00</b></p>
+<h4>🔗 Lien parrainage 5 niveaux</h4>
 <input id="refLink" class="input" readonly onclick="this.select()">
-<p class="small">N1 6% | N2 3% | N3 2% | N4 1% | N5 1% - Commission sur FRAIS de trading uniquement. Pas sur dépôt. Capital à risque.</p>
-
-<h4 style="margin-top:22px">💳 Dépôt USDT - TRC20 SEULEMENT</h4>
-<p class="small">Réseau : TRON (TRC20). Les autres réseaux seront perdus.</p>
-<input id="myAddr" class="input" value="TQk...METS TON ADRESSE ICI..." readonly>
-<button onclick="navigator.clipboard.writeText(document.getElementById('myAddr').value);alert('Adresse copiée')" class="btn" style="width:100%;margin-top:8px">Copier adresse</button>
-
-<p class="small" style="margin-top:12px">Après envoi, colle le TXID pour vérification blockchain réelle :</p>
-<input id="txid" class="input" placeholder="ex: a1b2c3d4e5f6...">
-<button onclick="checkTx()" class="btn" style="width:100%;margin-top:8px;background:#0ecb81;color:#000">Vérifier sur blockchain & Créditer</button>
+<p class="small">N1 6% | N2 3% | N3 2% | N4 1% | N5 1%</p>
+<h4 style="margin-top:20px">💳 Dépôt - Choisis réseau</h4>
+<select id="networkSelect" class="input" style="font-weight:bold"></select>
+<input id="myAddr" class="input" readonly style="margin-top:10px;background:#1a2340;font-weight:bold">
+<button onclick="navigator.clipboard.writeText(document.getElementById('myAddr').value);alert('Copié Boss')" class="btn" style="width:100%;margin-top:8px">Copier adresse</button>
+<p class="small" style="margin-top:12px">Après envoi, colle TXID :</p>
+<input id="txid" class="input" placeholder="TXID...">
+<button onclick="checkTx()" class="btn" style="width:100%;margin-top:8px;background:#0ecb81;color:#000">Vérifier & créditer</button>
 <p id="checkMsg" class="small"></p>
-
-<div style="margin-top:16px;background:#0a0f1f;padding:12px;border-radius:10px">
-<b>Comment ça marche :</b><br>
-1. Tu envoies USDT TRC20 à l'adresse ci-dessus<br>
-2. Tu colles TXID → on vérifie sur TronScan API<br>
-3. Si confirmé → on crée demande → Admin valide → Solde crédité automatiquement<br>
-4. Parrainage crédité sur 5 niveaux automatiquement
 </div>
-</div>
-
-<div style="padding:18px;text-align:center" class="small">Market risk • Capital à risque • Prix référence uniquement • Pas de rendement garanti 60S 4% interdit • Plateforme démo tant que non agréée</div>
-
+<div style="padding:18px;text-align:center" class="small">Capital à risque</div>
 <script>
-// ================= CONFIG FIREBASE - REMPLACE ICI BOSS =================
 const firebaseConfig = {
-  apiKey: "AIzaSy...COLLE ICI...",
-  authDomain: "ton-projet.firebaseapp.com",
-  projectId: "ton-projet",
-};
-// =======================================================================
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-const USDT_ADDR = "TQk...METS TA VRAIE ADRESSE TRON ICI..."; // <--- CHANGE ICI BOSS
-document.getElementById('myAddr').value = USDT_ADDR;
-
-const STOCKS = ['AAPL','GOOGL','MSFT','NVDA','TSLA','META','AMD','NFLX','AMZN','DIS'];
-
-// LOGIN GMAIL
-document.getElementById('loginBtn').onclick = ()=>{
-  const p = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(p);
-};
-
-auth.onAuthStateChanged(async user=>{
-  if(user){
-    document.getElementById('loginBtn').style.display='none';
-    document.getElementById('userBox').style.display='block';
-    document.getElementById('uEmail').innerText=user.email;
-    document.getElementById('dashboard').style.display='block';
-    document.getElementById('refLink').value=`https://novainvestment0-dotcom.github.io/Nova_Investing/?ref=${user.uid}`;
-
-    const ref = new URLSearchParams(window.location.search).get('ref');
-    await db.collection('users').doc(user.uid).set({
-      email:user.email, parrain: ref||null, balance:0, invested:0, created:Date.now()
-    },{merge:true});
-
-    const doc = await db.collection('users').doc(user.uid).get();
-    if(doc.exists){
-      document.getElementById('bal').innerText=`$${(doc.data().balance||0).toFixed(2)} USDT`;
-    }
-  } else {
-    document.getElementById('loginBtn').style.display='block';
-    document.getElementById('userBox').style.display='none';
-    document.getElementById('dashboard').style.display='none';
-  }
-});
-
-// MARCHÉ LIVE $US
-async function loadM(){
-  let h='';
-  for(let s of STOCKS){
-    let price=(100+Math.random()*500).toFixed(2);
-    let ch=(Math.random()*4-2).toFixed(2);
-    try{let r=await fetch(`https://api.twelvedata.com/price?symbol=${s}&apikey=demo`);let j=await r.json();if(j.price)price=parseFloat(j.price).toFixed(2);}catch(e){}
-    let up=parseFloat(ch)>=0;
-    h+=`<div class="row"><div><b>${s}</b><div class="small">USDT</div></div><div style="text-align:right"><b>$${price}</b><div class="${up?'up':'down'}">${up?'+':''}${ch}%</div></div></div>`;
-  }
-  document.getElementById('marketList').innerHTML=h;
-}
-loadM(); setInterval(loadM,15000);
-
-// VERIF BLOCKCHAIN + CREDIT + PARRAINAGE 5 NIVEAUX
-async function checkTx(){
-  const txid=document.getElementById('txid').value.trim();
-  const user=auth.currentUser;
-  if(!user) return alert('Connecte-toi avec Gmail d\'abord');
-  if(!txid) return alert('Colle TXID');
-  document.getElementById('checkMsg').innerText='Vérification TronScan...';
-  try{
-    const r=await fetch(`https://apilist.tronscanapi.com/api/transaction-info?hash=${txid}`);
-    const d=await r.json();
-    if(d && d.confirmed && d.contractData && d.contractData.amount){
-      const amount = d.contractData.amount/1000000; // USDT a 6 décimales
-      // Vérifie que c'est bien vers ton adresse
-      if(d.toAddress && d.toAddress.toLowerCase()!==USDT_ADDR.toLowerCase()){
-        document.getElementById('checkMsg').innerText='❌ Ce TXID n\'est pas envoyé à ta bonne adresse dépôt.';
-        return;
-      }
-      await db.collection('deposits').add({uid:user.uid, txid, amount, status:'pending', date:Date.now()});
-      document.getElementById('checkMsg').innerText=`✅ TXID confirmé: ${amount} USDT. Demande envoyée. Admin va créditer + distribuer parrainage N1-N5.`;
-    }else{
-      document.getElementById('checkMsg').innerText='❌ TXID non trouvé / pas confirmé. Attends 1 min après envoi.';
-    }
-  }catch(e){
-    document.getElementById('checkMsg').innerText='Erreur réseau. Réessaie.';
-  }
-}
-</script>
-</body>
-</html>
+  apiKey: "AIzaSyDsEg98jthVQXOl7mO9PO2Ahn1dU_7A9sYv",
+  authDomain: "novainvesting-1e9b4.firebaseapp
