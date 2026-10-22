@@ -1,47 +1,81 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NOVA INVEST - Live $US</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <style>
-body{margin:0;background:#070a14;color:#fff;font-family:system-ui}
-.top{background:#0e1324;padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1d2642;position:sticky;top:0;z-index:10}
-.btn{background:#7c3aed;color:#fff;border:0;padding:11px 18px;border-radius:10px;font-weight:800;cursor:pointer}
-.row{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #141b32}
-.up{color:#0ecb81}.down{color:#f6465d}
-.card{background:#10162b;margin:12px;padding:16px;border-radius:14px;border:1px solid #1e2a4a}
-.input{width:100%;padding:13px;background:#060913;border:1px solid #2a365e;border-radius:10px;color:#fff;margin-top:8px;box-sizing:border-box}
-.small{font-size:12px;color:#8b93a8}
-.badge{background:#12211a;color:#0ecb81;padding:4px 8px;border-radius:20px;font-size:11px}
+body{margin:0;background:#070A14;color:#fff;font-family:system-ui}
+.top{background:#0B1229;padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a2a5e}
+.badge{background:#121f4a;padding:6px 12px;border-radius:20px;font-size:12px}
+.card{margin:15px;background:#111A33;border:1px solid #22346E;border-radius:12px;padding:15px}
+.btn{width:100%;padding:14px;background:#0050FF;border:0;border-radius:10px;color:#fff;font-weight:bold;font-size:16px;margin-top:10px}
+.solde{font-size:32px;font-weight:900;color:#00FF88}
 </style>
 </head>
 <body>
+
 <div class="top">
-<div><b>NOVA</b> <span class="badge">● FLUX $US LIVE</span></div>
-<button id="loginBtn" class="btn">Se connecter avec Gmail</button>
-<div id="userBox" style="display:none"><span id="uEmail" class="small"></span> <button onclick="firebase.auth().signOut()" class="btn" style="background:#1e2642">Sortir</button></div>
+<div>NOVA<span style="color:#0050FF"> INVESTING</span></div>
+<div class="badge">FLUX BUS LIVE</div>
 </div>
-<div id="marketList"><div style="padding:20px">Chargement marché US$ live...</div></div>
-<div class="card" id="dashboard" style="display:none">
-<h3>💼 Mon tableau de bord</h3>
-<p>Solde: <b id="bal" style="font-size:22px">$0.00</b></p>
-<h4>🔗 Lien parrainage 5 niveaux</h4>
-<input id="refLink" class="input" readonly onclick="this.select()">
-<p class="small">N1 6% | N2 3% | N3 2% | N4 1% | N5 1%</p>
-<h4 style="margin-top:20px">💳 Dépôt - Choisis réseau</h4>
-<select id="networkSelect" class="input" style="font-weight:bold"></select>
-<input id="myAddr" class="input" readonly style="margin-top:10px;background:#1a2340;font-weight:bold">
-<button onclick="navigator.clipboard.writeText(document.getElementById('myAddr').value);alert('Copié Boss')" class="btn" style="width:100%;margin-top:8px">Copier adresse</button>
-<p class="small" style="margin-top:12px">Après envoi, colle TXID :</p>
-<input id="txid" class="input" placeholder="TXID...">
-<button onclick="checkTx()" class="btn" style="width:100%;margin-top:8px;background:#0ecb81;color:#000">Vérifier & créditer</button>
-<p id="checkMsg" class="small"></p>
+
+<div style="padding:15px">
+<button id="loginBtn" class="btn" style="background:white;color:black">Se connecter avec Gmail</button>
+<button id="logoutBtn" style="display:none" onclick="firebase.auth().signOut()">Déconnexion</button>
+
+<div class="card">
+<div>Mon tableau de bord</div>
+<div id="solde" class="solde">$0.00</div>
+<div id="details" style="font-size:12px;opacity:0.7">Lien parrainage 5 niveaux...</div>
 </div>
-<div style="padding:18px;text-align:center" class="small">Capital à risque</div>
+
+<div class="card">
+Adresse Dépôt TRC20: TVSmvbd...
+<br>Adresse EVM: 0x7806...
+</div>
+</div>
+
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyDsEg98jthVQXOl7mO9PO2Ahn1dU_7A9sYv",
-  authDomain: "novainvesting-1e9b4.firebaseapp
+  apiKey: "AIzaSyDQjVjW0QPOzNeLOI_3h5xVv",
+  authDomain: "novainvesting-1e9b4.firebaseapp.com",
+  projectId: "novainvesting-1e9b4",
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+document.getElementById('loginBtn').onclick = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider);
+};
+
+auth.onAuthStateChanged(user => {
+  if(user){
+    document.getElementById('loginBtn').style.display='none';
+    document.getElementById('logoutBtn').style.display='block';
+    // ECOUTE TES 1500$ EN DIRECT BOSS
+    db.collection("utilisateurs").doc(user.uid).onSnapshot(doc=>{
+      if(doc.exists){
+        const d = doc.data();
+        document.getElementById('solde').innerText = (d.soldeUSDT || 0) + " USDT";
+        document.getElementById('details').innerText = "Investi: "+(d.totalInvestiUSDT||0)+" | Gagné: "+(d.totalGagneUSDT||0)+" | Parrain: "+(d.codeParrain||"NOVA");
+      } else {
+        // CREATION AUTO SI PAS EXISTE
+        db.collection("utilisateurs").doc(user.uid).set({
+          soldeUSDT: 1500,
+          totalInvestiUSDT: 0,
+          totalGagneUSDT: 0,
+          email: user.email,
+          codeParrain: "NOVA"+user.uid.substring(0,4)
+        });
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
