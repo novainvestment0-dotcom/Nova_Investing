@@ -1,20 +1,102 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html lang="fr"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOVA INVESTING</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <style>
 body{margin:0;background:#070714;color:#fff;font-family:system-ui}
-.top{padding:14px;background:#0d1229;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a3a}
+.top{padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a1a3a}
 .card{margin:12px;background:#141a33;border:1px solid #232a5a;border-radius:12px;padding:15px}
 .btn{width:100%;padding:14px;background:#0057FF;border-radius:10px;color:#fff;font-weight:bold;font-size:16px;border:none}
+.solde{font-size:32px;font-weight:900;color:#00FF88}
+.adr{word-break:break-all;font-size:12px;color:#00FF88;margin-top:6px}
 </style>
 </head>
 <body>
+<div class="top"><div>NOVA<span style="color:#0057FF"> INVESTING</span></div></div>
 
-<div class="top">
-<div style="color:#0084FF">INVESTING</div>
-<div style
+<div style="padding:12px">
+  <button id="loginBtn" class="btn" style="background:#fff;color:#000">Se connecter avec Gmail</button>
+  <button id="logoutBtn" class="btn" style="display:none">Déconnexion</button>
+</div>
+
+<div class="card">
+  <div>Mon tableau de bord</div>
+  <div id="solde" class="solde">0.00 USDT</div>
+  <div id="details" style="font-size:12px;opacity:.7"></div>
+</div>
+
+<div class="card">
+  <div>Adresse de dépôt de la plateforme</div>
+  <div id="trc" class="adr"></div>
+  <div id="evm" class="adr"></div>
+  <div style="font-size:11px;opacity:.7;margin-top:8px">Ton solde est crédité après vérification de ton dépôt.</div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDsEg98jthVQXOl7m09PO2AhnlWacdTTA8",
+  authDomain: "novainvesting-1e9b4.firebaseapp.com",
+  projectId: "novainvesting-1e9b4",
+  storageBucket: "novainvesting-1e9b4.firebasestorage.app",
+  messagingSenderId: "56463178290",
+  appId: "1:56463178290:web:89b89191ce78a9e6b29a2b",
+  measurementId: "G-YDRY3NY8K4"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const ADRESSE_TRC20 = "ADRESSE_TRC20";
+const ADRESSE_EVM = "ADRESSE_EVM";
+function aff(id, label, val) {
+  document.getElementById(id).textContent =
+    label + " : " + (val.startsWith("ADRESSE_") ? "Adresse bientôt disponible" : val);
+}
+aff("trc", "TRC20", ADRESSE_TRC20);
+aff("evm", "EVM", ADRESSE_EVM);
+
+document.getElementById("loginBtn").onclick = () => {
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(e => alert(e.message));
+};
+document.getElementById("logoutBtn").onclick = () => auth.signOut();
+
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    document.getElementById("loginBtn").style.display = "block";
+    document.getElementById("logoutBtn").style.display = "none";
+    document.getElementById("solde").textContent = "0.00 USDT";
+    document.getElementById("details").textContent = "";
+    return;
+  }
+  document.getElementById("loginBtn").style.display = "none";
+  document.getElementById("logoutBtn").style.display = "block";
+
+  const ref = db.collection("users").doc(user.uid);
+  ref.get().then(d => {
+    if (!d.exists) {
+      return ref.set({
+        nom: user.displayName || "",
+        email: user.email,
+        adresseDepotUSDT: "",
+        soldeUSDT: 0,
+        totalGagneUSDT: 0,
+        totalInvestiUSDT: 0
+      });
+    }
+  }).then(() => {
+    ref.onSnapshot(d => {
+      if (!d.exists) return;
+      const x = d.data();
+      document.getElementById("solde").textContent = (x.soldeUSDT || 0) + " USDT";
+      document.getElementById("details").textContent =
+        "Investi : " + (x.totalInvestiUSDT || 0) + " | Gagné : " + (x.totalGagneUSDT || 0);
+    });
+  }).catch(e => alert(e.message));
+});
+</script>
+</body></html>
